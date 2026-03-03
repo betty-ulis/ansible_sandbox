@@ -3,30 +3,52 @@
   debug:
     msg: "Running do_checks role with checks: {{ checks_to_run | map(attribute='name') | list }}"
 
-- name: Role name | Run checks and accumulate
-  tags: do_checks
-  include_tasks: run_one_check.yml
-  loop: "{{ checks_to_run }}"
-  loop_control:
-    loop_var: check
 
-- name: Mock final check results for demonstration
-  tags: do_mock
+- name: Resolve selected groups into a list
   set_fact:
-    all_checks_details: {
-      "my_check_a": "my_check_a passed successfully!",
-      "my_check_b": "my_check_b passed successfully!"
-    }
-    all_checks_errors: {}
-    all_checks_warnings: {"mock": "It's a mock run"}
+    selected_groups_normalized: >-
+      {{
+        (check_groups.keys() | list)
+        if (selected_groups | default('ALL') | upper == 'ALL')
+        else
+          (
+            selected_groups | split(',') | map('trim') | reject('equalto','') | list
+          )
+      }}
+
+- name: DEBUG - Display selected groups
+  debug:
+    msg: "Selected groups to run: {{ selected_groups_normalized }}"
+
+- name: Run selected groups
+  include_tasks: run_checks_group.yml
+  loop: "{{ selected_groups_normalized }}"
+  loop_control:
+    loop_var: group_name
 
 - name: Display accumulated check results
   debug:
     msg:
-      Checks completed: true
-      Issues: "{{ all_checks }}"
-      Skipped: "{{ skipped_checks }}"
       Flow: Upgrading from {{ axonius_version }} to {{ version | default('some version') }}
+      Counts - Executed: "{{ executed_checks_count }}"
+      Counts - Issues: >-
+        {{
+          dict(
+            all_checks
+            | dict2items
+            | map(attribute='key')
+            | zip(
+                all_checks
+                | dict2items
+                | map(attribute='value')
+                | map('length')
+              )
+          )
+        }}
+      Counts - Skipped: "{{ skipped_checks | length }}"
+      Issues details: "{{ all_checks }}"
+      Skipped: "{{ skipped_checks }}"
+
 
 
 

@@ -1,0 +1,20 @@
+---
+
+- name: Check if target version check should be skipped
+  set_fact:
+      check_skipped: "version is not defined, target version check skipped"
+  when: version is not defined
+
+- name: Execute target version check
+  block:
+  - name: Run validate version module
+    validate_version:
+      version: "{{ version }}"
+    register: module_result
+    delegate_to: localhost
+
+  - name: Process target version check details
+    set_fact:
+      check_details: "{{ module_result.check_details }}"
+      check_errors: "{{ module_result.check_errors | default('') }}"
+  when: version is defined

@@ -1,0 +1,21 @@
+---
+
+- name: Check if upgrade path check should be skipped
+  set_fact:
+      check_skipped: "version is not defined, upgrade path check skipped"
+  when: version is not defined
+
+- name: Execute upgrade path check
+  block:
+  - name: Run upgrade path verification module
+    is_upgrade_path_valid:
+      current_version: "{{ axonius_version }}"
+      target_version: "{{ version }}"
+    register: module_result
+    delegate_to: localhost
+
+  - name: Process upgrade path check details
+    set_fact:
+      check_details: "{{ module_result.check_details }}"
+      check_errors: "{{ module_result.check_errors | default('') }}"
+  when: version is defined

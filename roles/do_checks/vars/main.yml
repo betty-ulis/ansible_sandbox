@@ -2,7 +2,7 @@
 # Variables for do_checks role
 
 # Initialize accumulators for results
-
+executed_checks_count: 0
 all_checks: {}
 skipped_checks: {}
 
@@ -13,3 +13,22 @@ checks_to_run:
 
   - name: my_check_b
     fail_strategy: "WARNING"
+
+
+check_groups:
+  system_checks:
+    - name: my_check_a
+      fail_strategy: "ERROR"  # Options: "CRITICAL", "ERROR", "WARNING", "INFO"
+
+    - name: my_check_b
+      fail_strategy: "WARNING"
+
+  domain_checks:
+    - name: check_current_version
+      fail_strategy: "ERROR"
+
+    - name: check_target_version
+      fail_strategy: "ERROR"
+
+    - name: check_upgrade_path
+      fail_strategy: "ERROR"

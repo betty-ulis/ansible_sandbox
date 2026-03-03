@@ -4,10 +4,16 @@
     check_errors: ''
     check_details: {}
     check_skipped: null
+    executed_checks_count: "{{ executed_checks_count + 1 }}"
+
+
+- name: TEMPORARY Debug group and check
+  debug:
+    msg: "Running check {{ check.name }} from group {{ group_name }} with fail strategy {{ check.fail_strategy }}"
 
 
 - name: Run check {{ check.name }}
-  include_tasks: "checks/{{ check.name }}.yml"
+  include_tasks: "checks/{{ group_name }}/{{ check.name }}.yml"
 
 
 - name: Accumulate skipped {{ check.name }}
