@@ -1,0 +1,37 @@
+---
+- name: Start checks debug
+  debug:
+    msg: "Running do_checks role with checks: {{ checks_to_run | map(attribute='name') | list }}"
+
+- name: Role name | Run checks and accumulate
+  tags: do_checks
+  include_tasks: run_one_check.yml
+  loop: "{{ checks_to_run }}"
+  loop_control:
+    loop_var: check
+
+- name: Mock final check results for demonstration
+  tags: do_mock
+  set_fact:
+    all_checks_details: {
+      "my_check_a": "my_check_a passed successfully!",
+      "my_check_b": "my_check_b passed successfully!"
+    }
+    all_checks_errors: {}
+    all_checks_warnings: {"mock": "It's a mock run"}
+
+
+- name: Set accumulated results
+  set_fact:
+    checks_result: |
+      Checks completed!
+      Errors: {{ all_checks_errors }}
+      Warnings: {{ all_checks_warnings }}
+      Skipped: {{ all_checks_skipped }}
+      Flow: Upgrading from {{ axonius_version }} to {{ version | default('some version') }}
+
+- name: Display accumulated check results
+  debug:
+    msg: "{{ checks_result.splitlines() }}"
+
+

@@ -1,0 +1,53 @@
+---
+- name: Initialize variables for {{ check.name }}
+  set_fact:
+    check_errors: ''
+    check_details: {}
+    check_skipped: null
+
+
+- name: Run check {{ check.name }}
+  include_tasks: "checks/{{ check.name }}.yml"
+
+#- name: Accumulate details for {{ check.name }}
+#  set_fact:
+#    all_checks_details: "{{ all_checks_details | ansible.builtin.combine({check.name: check_details}) }}"
+#  failed_when:
+#    - check_errors | length > 0
+#    - check.fail_strategy == 'CRITICAL'
+#    - fail_fast
+
+- name: Accumulate skipped {{ check.name }}
+  set_fact:
+    all_checks_skipped: "{{ all_checks_skipped | ansible.builtin.combine({check.name: check_skipped}) }}"
+  when:
+    - check_skipped is not none
+
+
+#- name: Accumulate warnings for {{ check.name }}
+#  set_fact:
+#    all_checks_warnings: "{{ all_checks_warnings + check_errors }}"
+#  when:
+#    - check_errors | length > 0
+#    - check.fail_strategy == 'WARNING'
+#
+#- name: Accumulate errors for {{ check.name }}
+#  set_fact:
+#   all_checks_errors:   "{{ all_checks_errors + check_errors }}"
+#  when:
+#    - check_errors | length > 0
+#    - check.fail_strategy == 'ERROR'
+
+- name: Accumulate warnings for {{ check.name }}
+  set_fact:
+    all_checks_warnings: "{{ all_checks_warnings | ansible.builtin.combine({check.name: check_errors}) }}"
+  when:
+    - check_errors | length > 0
+    - check.fail_strategy == 'WARNING'
+
+- name: Accumulate errors for {{ check.name }}
+  set_fact:
+   all_checks_errors:   "{{ all_checks_errors | ansible.builtin.combine({check.name: check_errors}) }}"
+  when:
+    - check_errors | length > 0
+    - check.fail_strategy == 'ERROR'

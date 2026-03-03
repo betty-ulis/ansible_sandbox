@@ -1,0 +1,17 @@
+---
+# Variables for do_checks role
+
+# Initialize accumulators for results
+
+all_checks_errors: {}
+all_checks_warnings: {}
+all_checks_details: {}
+all_checks_skipped: {}
+
+
+checks_to_run:
+  - name: my_check_a
+    fail_strategy: "ERROR"  # Options: "CRITICAL", "ERROR", "WARNING", "INFO"
+
+  - name: my_check_b
+    fail_strategy: "WARNING"
