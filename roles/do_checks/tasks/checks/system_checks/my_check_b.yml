@@ -16,5 +16,5 @@
   - name: Process my_check_b details
     set_fact:
       check_details: "{{ module_result.check_details }}"
-      check_errors: "{{ module_result.check_errors | default('') }}"
+      check_errors: "{{ module_result.check_errors | default(none) }}"
   when: version is defined

@@ -8,4 +8,4 @@
 - name: Process current version check details
   set_fact:
     check_details: "{{ module_result.check_details }}"
-    check_errors: "{{ module_result.check_errors | default('') }}"
+    check_errors: "{{ module_result.check_errors | default(none) }}"

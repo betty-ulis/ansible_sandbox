@@ -1,8 +1,7 @@
 ---
 - name: Initialize variables for {{ check.name }}
   set_fact:
-    check_errors: ''
-    check_details: {}
+    check_errors: null
     check_skipped: null
     executed_checks_count: "{{ executed_checks_count + 1 }}"
 
@@ -32,4 +31,4 @@
             recursive=True
           )
       }}
-  when: check_errors | length > 0
+  when: check_errors is not none
