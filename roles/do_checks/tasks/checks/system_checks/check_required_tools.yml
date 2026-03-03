@@ -1,0 +1,33 @@
+---
+
+- name: Check required tools exist on target
+  command: "command -v {{ item }}"
+  register: tool_check_results
+  loop: "{{ required_tools }}"
+  loop_control:
+    label: "{{ item }}"
+  changed_when: false
+  failed_when: false
+
+- name: Collect missing tools
+  set_fact:
+    _missing_tools: >-
+      {{
+        tool_check_results.results
+        | selectattr('rc', 'ne', 0)
+        | map(attribute='item')
+        | list
+      }}
+
+- name: Set check details for required tools
+  set_fact:
+    check_details:
+      required_tools: "{{ required_tools }}"
+      missing_tools: "{{ _missing_tools }}"
+
+- name: Set error message if tools are missing
+  set_fact:
+    check_errors: >-
+      Missing required tools: {{ _missing_tools | join(', ') }}
+  when: _missing_tools | length > 0
+

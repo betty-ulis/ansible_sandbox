@@ -5,22 +5,18 @@
 executed_checks_count: 0
 all_checks: {}
 skipped_checks: {}
-
-
-checks_to_run:
-  - name: my_check_a
-    fail_strategy: "ERROR"  # Options: "CRITICAL", "ERROR", "WARNING", "INFO"
-
-  - name: my_check_b
-    fail_strategy: "WARNING"
+unimplemented_checks: {}
 
 
 check_groups:
   system_checks:
-    - name: my_check_a
-      fail_strategy: "ERROR"  # Options: "CRITICAL", "ERROR", "WARNING", "INFO"
+#    - name: check_required_tools
+#      fail_strategy: "ERROR"  # Options: "CRITICAL", "ERROR", "WARNING", "INFO"
+#
+#    - name: check_script_location
+#      fail_strategy: "ERROR"
 
-    - name: my_check_b
+    - name: check_docker_version
       fail_strategy: "WARNING"
 
   domain_checks:

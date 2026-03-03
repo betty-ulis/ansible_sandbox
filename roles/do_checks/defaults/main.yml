@@ -1,6 +1,25 @@
 ---
 # Default variables for do_checks role
 
+required_tools:
+  - awk
+  - grep
+  - sed
+  - vetochka
+  - cp
+  - tar
+  - docker
+
+forbidden_installer_paths:
+  - "peel"
+
+supported_docker_major_versions:
+  - "28"
+  - "27"
+  - "26"
+  - "25"
+  - "23"
+
 
 
 

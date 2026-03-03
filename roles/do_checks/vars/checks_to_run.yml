@@ -1,7 +1,0 @@
-# Define which checks to run
-checks_to_run:
-  - name: my_check_a
-    fail_strategy: "ERROR"  # Options: "CRITICAL", "ERROR", "WARNING", "INFO"
-
-  - name: my_check_b
-    fail_strategy: "WARNING"

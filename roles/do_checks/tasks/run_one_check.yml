@@ -3,23 +3,24 @@
   set_fact:
     check_errors: null
     check_skipped: null
+    check_unimplemented: null
     executed_checks_count: "{{ executed_checks_count + 1 }}"
-
-
-- name: TEMPORARY Debug group and check
-  debug:
-    msg: "Running check {{ check.name }} from group {{ group_name }} with fail strategy {{ check.fail_strategy }}"
 
 
 - name: Run check {{ check.name }}
   include_tasks: "checks/{{ group_name }}/{{ check.name }}.yml"
-
 
 - name: Accumulate skipped {{ check.name }}
   set_fact:
     skipped_checks: "{{ skipped_checks | ansible.builtin.combine({check.name: check_skipped}) }}"
   when:
     - check_skipped is not none
+
+- name: Accumulate unimplemented {{ check.name }}
+  set_fact:
+    unimplemented_checks: "{{ unimplemented_checks | ansible.builtin.combine({check.name: check_unimplemented}) }}"
+  when:
+    - check_unimplemented is not none
 
 - name: Route check output by severity
   set_fact:

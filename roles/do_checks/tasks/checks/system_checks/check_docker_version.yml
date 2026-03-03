@@ -1,0 +1,27 @@
+---
+
+- name: Get Docker host information
+  community.docker.docker_host_info:
+  register: docker_host_info
+
+- name: Get Docker version
+  ansible.builtin.set_fact:
+    docker_version: "{{ docker_host_info.host_info.ServerVersion | default('unknown') }}"
+
+- name: Get Docker major version
+  ansible.builtin.set_fact:
+    docker_major_version: "{{ docker_version.split('.')[0] }}"
+
+- name: Set check details for required tools
+  set_fact:
+    check_details:
+      supported_major_versions: "{{ supported_docker_major_versions }}"
+      current_full_version: "{{ docker_version }}"
+      current_major_version: "{{ docker_major_version }}"
+
+- name: Set error message if docker version is deprecated
+  set_fact:
+    check_errors: >-
+      Unsupported major docker version: {{ docker_major_version }}.
+  when: docker_major_version not in supported_docker_major_versions
+

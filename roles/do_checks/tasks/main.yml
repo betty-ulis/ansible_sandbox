@@ -1,9 +1,4 @@
 ---
-- name: Start checks debug
-  debug:
-    msg: "Running do_checks role with checks: {{ checks_to_run | map(attribute='name') | list }}"
-
-
 - name: Resolve selected groups into a list
   set_fact:
     selected_groups_normalized: >-
@@ -16,9 +11,9 @@
           )
       }}
 
-- name: DEBUG - Display selected groups
+- name: Start checks debug
   debug:
-    msg: "Selected groups to run: {{ selected_groups_normalized }}"
+    msg: "Running do_checks role with check groups: {{ selected_groups_normalized }}"
 
 - name: Run selected groups
   include_tasks: run_checks_group.yml
@@ -48,6 +43,9 @@
       Counts - Skipped: "{{ skipped_checks | length }}"
       Issues details: "{{ all_checks }}"
       Skipped: "{{ skipped_checks }}"
+      Unimplemented: "{{ unimplemented_checks }}"
+
+
 
 
 
