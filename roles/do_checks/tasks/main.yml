@@ -20,18 +20,14 @@
     all_checks_errors: {}
     all_checks_warnings: {"mock": "It's a mock run"}
 
-
-- name: Set accumulated results
-  set_fact:
-    checks_result: |
-      Checks completed!
-      Errors: {{ all_checks_errors }}
-      Warnings: {{ all_checks_warnings }}
-      Skipped: {{ all_checks_skipped }}
-      Flow: Upgrading from {{ axonius_version }} to {{ version | default('some version') }}
-
 - name: Display accumulated check results
   debug:
-    msg: "{{ checks_result.splitlines() }}"
+    msg:
+      Checks completed: true
+      Issues: "{{ all_checks }}"
+      Skipped: "{{ skipped_checks }}"
+      Flow: Upgrading from {{ axonius_version }} to {{ version | default('some version') }}
+
+
 
 

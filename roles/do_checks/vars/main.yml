@@ -3,10 +3,8 @@
 
 # Initialize accumulators for results
 
-all_checks_errors: {}
-all_checks_warnings: {}
-all_checks_details: {}
-all_checks_skipped: {}
+all_checks: {}
+skipped_checks: {}
 
 
 checks_to_run:
