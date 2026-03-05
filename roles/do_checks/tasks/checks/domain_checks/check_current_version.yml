@@ -1,7 +1,7 @@
 ---
 - name: Execute current version check - run validate version module
   validate_version:
-    version: "{{ axonius_version }}"
+    version: "{{ pumpkin_version }}"
   register: module_result
   delegate_to: localhost
 

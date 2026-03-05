@@ -1,0 +1,3 @@
+- name: Set Pumpkin Version to Fact
+  ansible.builtin.set_fact:
+    pumpkin_version: "13_5_47_3"

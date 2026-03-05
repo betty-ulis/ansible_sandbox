@@ -1,3 +1,0 @@
-- name: Set Axonius Version to Fact
-  ansible.builtin.set_fact:
-    axonius_version: "13_5_47_3"

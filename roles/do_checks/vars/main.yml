@@ -1,23 +1,37 @@
 ---
 # Variables for do_checks role
 
-# Initialize accumulators for results
-executed_checks_count: 0
-all_checks: {}
-skipped_checks: {}
-unimplemented_checks: {}
-
+relevant_pre_tasks:
+  - "{{ tasks_path }}/check_pumpkin_version"
 
 check_groups:
   system_checks:
-#    - name: check_required_tools
-#      fail_strategy: "ERROR"  # Options: "CRITICAL", "ERROR", "WARNING", "INFO"
-#
-#    - name: check_script_location
-#      fail_strategy: "ERROR"
+    - name: check_required_tools
+      fail_strategy: "ERROR"
+
+    - name: check_script_location
+      fail_strategy: "ERROR"
+
+    - name: check_docker_responsiveness
+      pre_tasks:
+        - common/get_docker_info
+      fail_strategy: "ERROR"
 
     - name: check_docker_version
+      pre_tasks:
+        - common/get_docker_info
       fail_strategy: "WARNING"
+
+    - name: check_os_version
+      fail_strategy: "WARNING"
+
+    - name: check_disk_space
+      pre_tasks:
+        - common/get_docker_info
+      fail_strategy: "ERROR"
+
+    - name: check_cpu_avx
+      fail_strategy: "ERROR"
 
   domain_checks:
     - name: check_current_version

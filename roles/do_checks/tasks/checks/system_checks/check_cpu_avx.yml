@@ -1,0 +1,5 @@
+---
+
+- name: CPU AVX Instruction Check - unimplemented
+  set_fact:
+      check_unimplemented: "Need help to understand what to check"

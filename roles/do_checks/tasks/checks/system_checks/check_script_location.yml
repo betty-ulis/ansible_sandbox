@@ -2,4 +2,4 @@
 
 - name: Check if in forbidden directory - unimplemented
   set_fact:
-      check_unimplemented: "how the check supposed to know where installer is?"
+      check_unimplemented: "How the check supposed to know where installer is?"

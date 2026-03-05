@@ -1,4 +1,5 @@
 ---
+
 - name: Run {{ group_name }} checks
   include_tasks: run_one_check.yml
   loop: "{{ check_groups.get(group_name, []) }}"

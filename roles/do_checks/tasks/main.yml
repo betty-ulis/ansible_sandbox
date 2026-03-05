@@ -1,4 +1,15 @@
 ---
+- name: Gather minimal facts subset
+  setup:
+    gather_subset: min
+
+- name: Initialize accumulators for this run
+  set_fact:
+    executed_checks_count: 0
+    all_checks: {}
+    skipped_checks: {}
+    unimplemented_checks: {}
+
 - name: Resolve selected groups into a list
   set_fact:
     selected_groups_normalized: >-
@@ -15,6 +26,37 @@
   debug:
     msg: "Running do_checks role with check groups: {{ selected_groups_normalized }}"
 
+
+- name: Gather all relevant checks for selected groups
+  set_fact:
+    requested_checks: >-
+      {{
+        selected_groups_normalized
+        | map('extract', check_groups)
+        | flatten
+      }}
+
+- name: Build list of required facts filters and pre-tasks for selected groups
+  set_fact:
+    relevant_pre_tasks: >-
+      {{
+        relevant_pre_tasks
+        | union (
+          requested_checks
+          | map(attribute='pre_tasks')
+          | select('defined')
+          | flatten
+          | unique
+        )
+      }}
+
+- name: Run pre-tasks for selected groups
+  include_tasks: "{{ pre_task_name }}.yml"
+  loop: "{{ relevant_pre_tasks }}"
+  loop_control:
+    loop_var: pre_task_name
+
+
 - name: Run selected groups
   include_tasks: run_checks_group.yml
   loop: "{{ selected_groups_normalized }}"
@@ -24,7 +66,7 @@
 - name: Display accumulated check results
   debug:
     msg:
-      Flow: Upgrading from {{ axonius_version }} to {{ version | default('some version') }}
+      Flow: Upgrading from {{ pumpkin_version }} to {{ version | default('some version') }}
       Counts - Executed: "{{ executed_checks_count }}"
       Counts - Issues: >-
         {{

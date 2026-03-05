@@ -1,0 +1,6 @@
+---
+
+- name: Get Docker host information
+  community.docker.docker_host_info:
+  register: docker_host_info
+  failed_when: false

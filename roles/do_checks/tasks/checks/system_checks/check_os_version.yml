@@ -1,0 +1,8 @@
+
+- name: DEBUG Display gathered facts
+  ansible.builtin.debug:
+    var: ansible_facts
+
+- name: Check if in forbidden directory - unimplemented
+  set_fact:
+      check_unimplemented: "Need help to understand what to check"

@@ -3,9 +3,6 @@
   hosts: localhost
   gather_facts: false
 
-  pre_tasks:
-    - include_tasks: "{{ tasks_path }}/check_axonius_version.yml"
-
   roles:
     - do_checks
 

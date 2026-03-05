@@ -9,7 +9,7 @@
   block:
   - name: Run upgrade path verification module
     is_upgrade_path_valid:
-      current_version: "{{ axonius_version }}"
+      current_version: "{{ pumpkin_version }}"
       target_version: "{{ version }}"
     register: module_result
     delegate_to: localhost
