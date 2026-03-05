@@ -1,11 +1,11 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import re
 
 from ansible.module_utils.basic import AnsibleModule
 
 CRITICAL_STOPS = [
     "6_1_24_11",  # Required for MongoDB 5.0 migration
-    "7_0_13_11",  # Required for breaking changes in 7.1+
+    "7_0_13_11",  # Required for breaking changes in 7_1+
 ]
 
 # Valid version is represented as a tuple of 4 integers - (major, minor, patch, build)
@@ -52,14 +52,14 @@ def run(module: AnsibleModule):
             module.exit_json(
                 **results,
                 status="failed",
-                check_errors=f"Upgrade path from {current_version} to {target_version} requires intermediate stops at: {', '.join(required_stops)}",
+                check_errors=f"Upgrade path from {current_version_str} to {target_version_str} requires intermediate stops at: {', '.join(required_stops)}",
                 check_details={"details": "Please upgrade to required intermediate versions before upgrading to the target version"}
             )
         else:
             module.exit_json(
                 **results,
                 status="success",
-                check_details={"details": f"Upgrade path from {current_version} to {target_version} is valid with no required intermediate stops"}
+                check_details={"details": f"Upgrade path from {current_version_str} to {target_version_str} is valid with no required intermediate stops"}
             )
     except Exception as e:
         module.exit_json(

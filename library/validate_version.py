@@ -1,3 +1,8 @@
+#!/usr/bin/python3
+"""
+Custom Ansible module: validate_version
+This module validates that version is in correct format X_Y_Z_B
+"""
 import re
 
 from ansible.module_utils.basic import AnsibleModule
