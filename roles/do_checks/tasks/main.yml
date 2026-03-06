@@ -77,73 +77,30 @@
   debug:
     msg: "{{ host_results }}"
 
-- name: Collect all host results
-  set_fact:
-    _all_results: "{{ ansible_play_hosts | map('extract', hostvars, 'host_results') | list }}"
+
+- name: Initialize overall aggregated results
   run_once: true
   delegate_to: localhost
-
-- name: Collect hosts per severity level
   set_fact:
-    _hosts_by_severity: >-
-      {{
-        _hosts_by_severity | default({}) | combine({
-          item: {
-            'count': _matched_hosts | length,
-            'hosts': _matched_hosts
-          }
-        })
-      }}
-  vars:
-    _matched_hosts: >-
-      {{
-        ansible_play_hosts
-        | zip(_all_results | map(attribute='Counts - Issues'))
-        | selectattr('1.' ~ item, 'defined')
-        | map('first')
-        | list
-      }}
-    _all_severities: >-
-      {{
-        _all_results
-        | map(attribute='Counts - Issues')
-        | map('dict2items')
-        | flatten
-        | map(attribute='key')
-        | unique
-        | list
-      }}
-  loop: "{{ _all_severities }}"
+    overall_results:
+      Counts - Hosts Total: "{{ ansible_play_hosts | length }}"
+      Counts - Issues: {}
+      Counts - Skipped: 0
+      Counts - no Issues: 0
+      Hosts with Issues: {}
+      Hosts with Skipped: []
+      Hosts with no Issues: []
+
+- name: Aggregate host results across all play hosts
+  run_once: true
+  include_tasks: aggregate_host.yml
+  loop: "{{ ansible_play_hosts }}"
+  loop_control:
+    loop_var: aggregated_host
+
+
+- name: Display overall aggregated results
   run_once: true
   delegate_to: localhost
-
-- name: Display run summary
   debug:
-    var: _run_summary
-  vars:
-    _run_summary:
-      total_hosts: "{{ ansible_play_hosts | length }}"
-      hosts_by_severity: "{{ _hosts_by_severity | default({}) }}"
-      hosts_with_skipped:
-        count: "{{ _skipped_hosts | length }}"
-        hosts: "{{ _skipped_hosts }}"
-      hosts_no_issues:
-        count: "{{ _clean_hosts | length }}"
-        hosts: "{{ _clean_hosts }}"
-    _skipped_hosts: >-
-      {{
-        ansible_play_hosts
-        | zip(_all_results | map(attribute='Counts - Skipped'))
-        | rejectattr('1', 'equalto', 0)
-        | map('first')
-        | list
-      }}
-    _clean_hosts: >-
-      {{
-        ansible_play_hosts
-        | reject('in', _skipped_hosts)
-        | reject('in', _hosts_by_severity | default({}) | dict2items | map(attribute='value.hosts') | flatten | unique)
-        | list
-      }}
-  run_once: true
-  delegate_to: localhost
+    var: overall_results
