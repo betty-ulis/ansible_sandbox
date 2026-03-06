@@ -94,7 +94,7 @@ def run(module: AnsibleModule):
                 **results,
                 status="failed",
                 check_errors=check_error_message,
-                check_skippes=check_skipped_message,
+                check_skipped=check_skipped_message,
                 check_details=details
             )
 
