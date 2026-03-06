@@ -6,7 +6,7 @@
         Unable to retrieve host information. Docker is not responsive.
   when: docker_host_info.host_info is not defined
 
-- name: Set check details for required tools
+- name: Set check details docker responsiveness
   set_fact:
     check_details:
       docker_host_info: "{{ docker_host_info }}"

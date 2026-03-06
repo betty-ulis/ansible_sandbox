@@ -34,11 +34,5 @@ check_groups:
       fail_strategy: "ERROR"
 
   domain_checks:
-    - name: check_current_version
-      fail_strategy: "ERROR"
-
-    - name: check_target_version
-      fail_strategy: "ERROR"
-
     - name: check_upgrade_path
       fail_strategy: "ERROR"
