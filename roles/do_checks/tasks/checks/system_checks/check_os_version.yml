@@ -1,8 +1,27 @@
+---
+- name: Get OS distribution
+  ansible.builtin.set_fact:
+    os_distribution: "{{ ansible_distribution | default('unknown') | lower }}"
 
-- name: DEBUG Display gathered facts
-  ansible.builtin.debug:
-    var: ansible_facts
+- name: Get OS version
+  ansible.builtin.set_fact:
+    os_version: "{{ ansible_distribution_major_version | default('unknown') }}"
 
-- name: Check if in forbidden directory - unimplemented
+- name: Set check details for OS version
   set_fact:
-      check_unimplemented: "Need help to understand what to check"
+    check_details:
+      supported_distributions: "{{ supported_os_distributions }}"
+      current_distribution: "{{ os_distribution }}"
+      current_version: "{{ os_version }}"
+
+- name: Set error message if OS version is not supported
+  set_fact:
+    check_errors: >-
+      Unsupported OS distribution: {{ os_distribution }} {{ os_version }}.
+  when: os_distribution not in supported_os_distributions
+
+- name: Set error message if OS version is not supported
+  set_fact:
+    check_errors: >-
+      Unsupported {{ os_distribution }} version: {{ os_version }}.
+  when: os_distribution in supported_os_distributions and os_version not in supported_os_distributions[os_distribution]

@@ -33,6 +33,9 @@ check_groups:
     - name: check_cpu_avx
       fail_strategy: "ERROR"
 
+    - name: check_download_speed
+      fail_strategy: "WARNING"
+
   domain_checks:
     - name: check_upgrade_path
       fail_strategy: "ERROR"

@@ -1,7 +1,7 @@
 ---
 
 - name: Check required tools exist on target
-  command: "command -v {{ item }}"
+  shell: "command -v {{ item }}"
   register: tool_check_results
   loop: "{{ required_tools }}"
   loop_control:

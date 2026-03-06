@@ -1,0 +1,4 @@
+---
+- name: Check download speed - unimplemented
+  set_fact:
+      check_unimplemented: "Need help to understand what to check"

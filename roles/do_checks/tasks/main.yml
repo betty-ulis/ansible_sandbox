@@ -36,7 +36,7 @@
         | flatten
       }}
 
-- name: Build list of required facts filters and pre-tasks for selected groups
+- name: Build list of required pre-tasks for selected groups
   set_fact:
     relevant_pre_tasks: >-
       {{
@@ -46,8 +46,8 @@
           | map(attribute='pre_tasks')
           | select('defined')
           | flatten
-          | unique
         )
+        | unique
       }}
 
 - name: Run pre-tasks for selected groups
@@ -56,40 +56,94 @@
   loop_control:
     loop_var: pre_task_name
 
-
 - name: Run selected groups
   include_tasks: run_checks_group.yml
   loop: "{{ selected_groups_normalized }}"
   loop_control:
     loop_var: group_name
 
-- name: Display accumulated check results
-  debug:
-    msg:
+- name: Collect accumulated check results per host
+  set_fact:
+    host_results:
       Flow: Upgrading from {{ pumpkin_version }} to {{ version | default('some version') }}
       Counts - Executed: "{{ executed_checks_count }}"
-      Counts - Issues: >-
-        {{
-          dict(
-            all_checks
-            | dict2items
-            | map(attribute='key')
-            | zip(
-                all_checks
-                | dict2items
-                | map(attribute='value')
-                | map('length')
-              )
-          )
-        }}
+      Counts - Issues: "{{ dict(all_checks.keys() | zip(all_checks.values() | map('length'))) }}"
       Counts - Skipped: "{{ skipped_checks | length }}"
       Issues details: "{{ all_checks }}"
       Skipped: "{{ skipped_checks }}"
       Unimplemented: "{{ unimplemented_checks }}"
 
+- name: Display host results
+  debug:
+    msg: "{{ host_results }}"
 
+- name: Collect all host results
+  set_fact:
+    _all_results: "{{ ansible_play_hosts | map('extract', hostvars, 'host_results') | list }}"
+  run_once: true
+  delegate_to: localhost
 
+- name: Collect hosts per severity level
+  set_fact:
+    _hosts_by_severity: >-
+      {{
+        _hosts_by_severity | default({}) | combine({
+          item: {
+            'count': _matched_hosts | length,
+            'hosts': _matched_hosts
+          }
+        })
+      }}
+  vars:
+    _matched_hosts: >-
+      {{
+        ansible_play_hosts
+        | zip(_all_results | map(attribute='Counts - Issues'))
+        | selectattr('1.' ~ item, 'defined')
+        | map('first')
+        | list
+      }}
+    _all_severities: >-
+      {{
+        _all_results
+        | map(attribute='Counts - Issues')
+        | map('dict2items')
+        | flatten
+        | map(attribute='key')
+        | unique
+        | list
+      }}
+  loop: "{{ _all_severities }}"
+  run_once: true
+  delegate_to: localhost
 
-
-
-
+- name: Display run summary
+  debug:
+    var: _run_summary
+  vars:
+    _run_summary:
+      total_hosts: "{{ ansible_play_hosts | length }}"
+      hosts_by_severity: "{{ _hosts_by_severity | default({}) }}"
+      hosts_with_skipped:
+        count: "{{ _skipped_hosts | length }}"
+        hosts: "{{ _skipped_hosts }}"
+      hosts_no_issues:
+        count: "{{ _clean_hosts | length }}"
+        hosts: "{{ _clean_hosts }}"
+    _skipped_hosts: >-
+      {{
+        ansible_play_hosts
+        | zip(_all_results | map(attribute='Counts - Skipped'))
+        | rejectattr('1', 'equalto', 0)
+        | map('first')
+        | list
+      }}
+    _clean_hosts: >-
+      {{
+        ansible_play_hosts
+        | reject('in', _skipped_hosts)
+        | reject('in', _hosts_by_severity | default({}) | dict2items | map(attribute='value.hosts') | flatten | unique)
+        | list
+      }}
+  run_once: true
+  delegate_to: localhost

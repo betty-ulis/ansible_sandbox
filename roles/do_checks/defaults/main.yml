@@ -10,8 +10,17 @@ required_tools:
   - tar
   - docker
 
-forbidden_installer_paths:
-  - "peel"
+supported_os_distributions:
+  ubuntu:
+    - "24"
+    - "22"
+    - "20"
+  rhel:
+    - "9"
+    - "8"
+  rocky:
+    - "9"
+    - "8"
 
 supported_docker_major_versions:
   - "28"
@@ -19,8 +28,3 @@ supported_docker_major_versions:
   - "26"
   - "25"
   - "23"
-
-
-
-
-
