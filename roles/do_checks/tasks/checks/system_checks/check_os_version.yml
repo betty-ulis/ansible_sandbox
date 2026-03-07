@@ -1,11 +1,11 @@
 ---
 - name: Get OS distribution
   ansible.builtin.set_fact:
-    os_distribution: "{{ ansible_distribution | default('unknown') | lower }}"
+    os_distribution: "{{ ansible_facts['distribution'] | default('unknown') | lower }}"
 
 - name: Get OS version
   ansible.builtin.set_fact:
-    os_version: "{{ ansible_distribution_major_version | default('unknown') }}"
+    os_version: "{{ ansible_facts['distribution_major_version'] | default('unknown') }}"
 
 - name: Set check details for OS version
   set_fact:

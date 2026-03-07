@@ -1,7 +1,10 @@
 ---
 - name: Gather minimal facts subset
   setup:
-    gather_subset: min
+    gather_subset:
+      - "!all"
+      - "os_family"
+      - "hardware"
 
 - name: Initialize accumulators for this run
   set_fact:

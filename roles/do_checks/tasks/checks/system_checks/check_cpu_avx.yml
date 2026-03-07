@@ -1,5 +1,30 @@
 ---
+- name: Get CPU AVX support from facts
+  when: ansible_facts['flags'] is defined
+  ansible.builtin.set_fact:
+    cpu_avx_support: "{{ 'avx' in (ansible_facts['flags'] | lower) }}"
 
-- name: CPU AVX Instruction Check - unimplemented
-  set_fact:
-      check_unimplemented: "Need help to understand what to check"
+- name: Get CPU AVX support from command
+  when: ansible_facts['flags'] is not defined
+  block:
+    - name: Check if AVX is supported
+      ansible.builtin.command: grep -iq avx /proc/cpuinfo
+      register: cpu_avx_support_cmd
+      changed_when: false
+      failed_when: false
+
+    - name: Set CPU AVX support from command
+      ansible.builtin.set_fact:
+        cpu_avx_support: "{{ cpu_avx_support_cmd.rc == 0 }}"
+
+- name: Set check details for CPU AVX support
+  ansible.builtin.set_fact:
+    check_details:
+      cpu_avx_support: "{{ cpu_avx_support }}"
+#      processor_flags: "{{ ansible_facts['flags'] | default('undefined') }}"
+
+- name: Set error message if CPU AVX support is missing
+  ansible.builtin.set_fact:
+    check_errors: >-
+      CPU does not support AVX instructions. MongoDB 5.0+ requires a CPU with AVX support.
+  when: not cpu_avx_support | bool
