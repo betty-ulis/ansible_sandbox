@@ -29,21 +29,23 @@
       }}
 
 - name: Aggregate issue counts and host lists per severity
+  vars:
+    current_issue_count: "{{ overall_results['Counts - Issues'].get(severity, 0) }}"
+    current_issue_hosts: "{{ overall_results['Hosts with Issues'].get(severity, []) }}"
   set_fact:
     overall_results: >-
       {{
-        overall_results | combine({
-          'Counts - Issues':
-            overall_results['Counts - Issues']
-            | combine({
-                severity: (overall_results['Counts - Issues'].get(severity, 0) + 1)
-              }, recursive=True),
-          'Hosts with Issues':
-            overall_results['Hosts with Issues']
-            | combine({
-                severity: overall_results['Hosts with Issues'].get(severity, []) + [aggregated_host]
-              }, recursive=True)
-        }, recursive=True)
+        overall_results | combine(
+          {
+            'Counts - Issues': {
+              severity: current_issue_count + 1
+            },
+            'Hosts with Issues': {
+              severity: current_issue_hosts + [aggregated_host]
+            }
+          },
+          recursive=True
+        )
       }}
   loop: "{{ _host_issues.keys() | list }}"
   loop_control:

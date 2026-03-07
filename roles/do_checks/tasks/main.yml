@@ -77,7 +77,6 @@
   debug:
     msg: "{{ host_results }}"
 
-
 - name: Initialize overall aggregated results
   run_once: true
   delegate_to: localhost
