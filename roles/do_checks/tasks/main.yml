@@ -43,12 +43,15 @@
   set_fact:
     relevant_pre_tasks: >-
       {{
-        relevant_pre_tasks
-        | union (
-          requested_checks
-          | map(attribute='pre_tasks')
-          | select('defined')
-          | flatten
+        (
+          relevant_pre_tasks
+          + (
+              requested_checks
+              | map(attribute='pre_tasks')
+              | select('defined')
+              | list
+              | flatten
+            )
         )
         | unique
       }}
