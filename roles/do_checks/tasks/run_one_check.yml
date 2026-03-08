@@ -1,5 +1,6 @@
 ---
 - name: Initialize variables for {{ check.name }}
+  run_once: true
   set_fact:
     check_errors: null
     check_skipped: null

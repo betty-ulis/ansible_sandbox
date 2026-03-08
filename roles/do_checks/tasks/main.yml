@@ -7,6 +7,7 @@
       - "hardware"
 
 - name: Initialize accumulators for this run
+  run_once: true
   set_fact:
     executed_checks_count: 0
     all_checks: {}
@@ -14,6 +15,7 @@
     unimplemented_checks: {}
 
 - name: Resolve selected groups into a list
+  run_once: true
   set_fact:
     selected_groups_normalized: >-
       {{
@@ -31,6 +33,7 @@
 
 
 - name: Gather all relevant checks for selected groups
+  run_once: true
   set_fact:
     requested_checks: >-
       {{
@@ -40,6 +43,7 @@
       }}
 
 - name: Build list of required pre-tasks for selected groups
+  run_once: true
   set_fact:
     relevant_pre_tasks: >-
       {{
@@ -86,6 +90,7 @@
 - name: Initialize overall aggregated results
   run_once: true
   delegate_to: localhost
+  delegate_facts: true
   set_fact:
     overall_results:
       Counts - Hosts Total: "{{ ansible_play_hosts | length }}"
@@ -102,7 +107,6 @@
   loop: "{{ ansible_play_hosts }}"
   loop_control:
     loop_var: aggregated_host
-
 
 - name: Display overall aggregated results
   run_once: true
