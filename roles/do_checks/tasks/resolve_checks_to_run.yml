@@ -1,0 +1,44 @@
+---
+- name: Initialize list of relevant checks and pre-tasks
+  run_once: true
+  delegate_to: localhost
+  delegate_facts: true
+  block:
+
+  - name: Resolve selected groups into a list
+    set_fact:
+      selected_groups_normalized: >-
+        {{
+          (check_groups.keys() | list)
+          if (selected_groups | default('ALL') | upper == 'ALL')
+          else
+            (
+              selected_groups | split(',') | map('trim') | reject('equalto','') | list
+            )
+        }}
+
+  - name: Gather all relevant checks for selected groups
+    set_fact:
+      requested_checks: >-
+        {{
+          selected_groups_normalized
+          | map('extract', check_groups)
+          | flatten
+        }}
+
+  - name: Build list of required pre-tasks for selected groups
+    set_fact:
+      relevant_pre_tasks: >-
+        {{
+          (
+            relevant_pre_tasks
+            + (
+                requested_checks
+                | map(attribute='pre_tasks')
+                | select('defined')
+                | list
+                | flatten
+              )
+          )
+          | unique
+        }}

@@ -1,11 +1,9 @@
 ---
-
 - name: Run upgrade path verification module
   is_upgrade_path_valid:
     current_version: "{{ pumpkin_version }}"
     target_version: "{{ version | default(omit) }}"
   register: module_result
-  delegate_to: localhost
 
 - name: Process upgrade path check details
   set_fact:

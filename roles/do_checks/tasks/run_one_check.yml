@@ -1,12 +1,12 @@
 ---
 - name: Initialize variables for {{ check.name }}
   run_once: true
+  delegate_to: localhost
   set_fact:
     check_errors: null
     check_skipped: null
     check_unimplemented: null
     executed_checks_count: "{{ (executed_checks_count | int) + 1 }}"
-
 
 - name: Run check {{ check.name }}
   include_tasks: "checks/{{ group_name }}/{{ check.name }}.yml"

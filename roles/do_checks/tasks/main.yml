@@ -8,57 +8,15 @@
 
 - name: Initialize accumulators for this run
   run_once: true
+  delegate_to: localhost
   set_fact:
     executed_checks_count: 0
     all_checks: {}
     skipped_checks: {}
     unimplemented_checks: {}
 
-- name: Resolve selected groups into a list
-  run_once: true
-  set_fact:
-    selected_groups_normalized: >-
-      {{
-        (check_groups.keys() | list)
-        if (selected_groups | default('ALL') | upper == 'ALL')
-        else
-          (
-            selected_groups | split(',') | map('trim') | reject('equalto','') | list
-          )
-      }}
-
-- name: Start checks debug
-  debug:
-    msg: "Running do_checks role with check groups: {{ selected_groups_normalized }}"
-
-
-- name: Gather all relevant checks for selected groups
-  run_once: true
-  set_fact:
-    requested_checks: >-
-      {{
-        selected_groups_normalized
-        | map('extract', check_groups)
-        | flatten
-      }}
-
-- name: Build list of required pre-tasks for selected groups
-  run_once: true
-  set_fact:
-    relevant_pre_tasks: >-
-      {{
-        (
-          relevant_pre_tasks
-          + (
-              requested_checks
-              | map(attribute='pre_tasks')
-              | select('defined')
-              | list
-              | flatten
-            )
-        )
-        | unique
-      }}
+- name: Resolve which checks to run based on selected groups
+  include_tasks: resolve_checks_to_run.yml
 
 - name: Run pre-tasks for selected groups
   include_tasks: "{{ pre_task_name }}.yml"
