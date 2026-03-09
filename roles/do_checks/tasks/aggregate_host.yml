@@ -10,18 +10,9 @@
       _host_issues: "{{ (hostvars[aggregated_host].host_results['Counts - Issues'] | default({})) }}"
       _host_has_skipped: "{{ (hostvars[aggregated_host].host_results['Counts - Skipped'] | default(0)) | int > 0 }}"
 
-
-  - name: Prepare host aggregation variables - whether has issues
-    set_fact:
-      _host_has_issues: "{{ _host_issues | length > 0 }}"
-
-
-  - name: Prepare host aggregation variables - whether is clean (no issues and not skipped)
-    set_fact:
-      _host_is_clean: "{{ not _host_has_issues and not _host_has_skipped }}"
-
-
   - name: Aggregate skipped / clean host counters
+    vars:
+      _host_is_clean: "{{ (_host_issues | length == 0) and not _host_has_skipped }}"
     set_fact:
       overall_results: >-
         {{
