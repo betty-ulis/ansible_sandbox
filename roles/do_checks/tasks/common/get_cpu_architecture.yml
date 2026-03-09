@@ -1,0 +1,28 @@
+---
+- name: Get CPU architecture from facts
+  when: ansible_facts['architecture'] is defined
+  ansible.builtin.set_fact:
+    cpu_architecture_raw: "{{ ansible_facts['architecture'] | lower }}"
+
+- name: Get CPU architecture from command
+  when: ansible_facts['architecture'] is not defined
+  block:
+  - name: Get CPU architecture from command
+    ansible.builtin.shell: "lscpu | grep 'Architecture' | awk '{print $2}'"
+    register: cpu_architecture_cmd
+    changed_when: false
+    failed_when: false
+
+  - name: Set CPU architecture from command
+    ansible.builtin.set_fact:
+      cpu_architecture_raw: "{{ cpu_architecture_cmd.stdout | lower }}"
+
+- name: Set normalized CPU architecture for ARM
+  ansible.builtin.set_fact:
+    cpu_architecture: "arm64"
+  when: ( cpu_architecture_raw | lower ) is match('aarch64|arm64')
+
+- name: Set normalized CPU architecture for AMD
+  ansible.builtin.set_fact:
+    cpu_architecture: "x86_64"
+  when: ( cpu_architecture_raw | lower) is match('x86_64|amd64')

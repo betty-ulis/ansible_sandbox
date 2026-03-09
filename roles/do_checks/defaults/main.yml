@@ -5,7 +5,6 @@ required_tools:
   - awk
   - grep
   - sed
-  - vetochka
   - cp
   - tar
   - docker

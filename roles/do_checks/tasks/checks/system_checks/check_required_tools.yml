@@ -1,10 +1,8 @@
 ---
-
 - name: Run check required tools module
   do_tools_exist:
     tool_list: "{{ required_tools }}"
   register: module_result
-
 
 - name: Process upgrade path check details
   set_fact:
