@@ -1,0 +1,13 @@
+---
+- name: Get Pumpkin installation path
+  when: axonius_conf is not defined or cortex_base_dir is not defined or cortex_path is not defined
+  block:
+    - name: Run get install path module
+      get_install_path:
+      register: module_result
+
+    - name: Process get install path details
+      set_fact:
+        axonius_conf: "{{ module_result.axonius_conf }}"
+        cortex_base_dir: "{{ module_result.cortex_base_dir }}"
+        cortex_path: "{{ module_result.cortex_path }}"
