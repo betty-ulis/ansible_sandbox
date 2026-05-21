@@ -28,6 +28,7 @@ jobs:
           filter: blob:none
           sparse-checkout: |
             check_push
+            .github
           sparse-checkout-cone-mode: false
       - name: Run version check
         uses: ./.github/actions/version_check
