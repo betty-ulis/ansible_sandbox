@@ -1,0 +1,36 @@
+# Check on push behavior
+name: Check Comparison On Push
+
+on:
+  pull_request:
+    paths:
+      - 'check_push/**'
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'check_push/**'
+
+jobs:
+  version-check:
+    name: Check On-Push Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version_check.outputs.version_promotion }}
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          filter: blob:none
+          sparse-checkout: |
+            check_push
+            .github
+          sparse-checkout-cone-mode: false
+      - name: Run version check
+        uses: ./.github/actions/version_check
+        with:
+          base_ref: ${{ github.base_ref || 'main' }}
