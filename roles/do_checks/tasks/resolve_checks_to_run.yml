@@ -2,7 +2,6 @@
 - name: Initialize list of relevant checks and pre-tasks
   run_once: true
   delegate_to: localhost
-  delegate_facts: true
   block:
 
   - name: Resolve selected groups into a list

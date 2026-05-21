@@ -2,7 +2,6 @@
 - name: Aggregate this host's results into overall_results
   run_once: true
   delegate_to: localhost
-  delegate_facts: true
   block:
 
   - name: Prepare host aggregation variables - issue details and whether was skipped

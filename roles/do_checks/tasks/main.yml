@@ -48,7 +48,6 @@
 - name: Initialize overall aggregated results
   run_once: true
   delegate_to: localhost
-  delegate_facts: true
   set_fact:
     overall_results:
       Counts - Hosts Total: "{{ ansible_play_hosts | length }}"

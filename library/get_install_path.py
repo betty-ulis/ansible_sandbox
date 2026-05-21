@@ -1,28 +1,74 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright: (c) 2026, Pumpkin
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
+DOCUMENTATION = r'''
+---
+module: get_install_path
+short_description: Get Pumpkin installation path
+description:
+  - This module tries to find the Pumpkin installation path by checking common locations and custom paths provided.
+  - It returns the install path, Cortex path and Pumpkin configuration path.
+author: Pumpkin
+options:
+  custom_paths:
+    description:
+      - List of custom paths to check for the configuration file.
+    type: list
+    elements: str
+    required: false
+    default: []
+'''
+
+RETURN = r'''
+install_path:
+  description: The Pumpkin installation path read from the configuration file.
+  type: str
+  returned: always
+  sample: "/pumpkin"
+cortex_path:
+  description: The path to the Cortex directory, derived from the install path.
+  type: str
+  returned: always
+  sample: "/pumpkin/cortex"
+pumpkin_conf:
+  description: The path to the Pumpkin configuration file that was found and used.
+  type: str
+  returned: always
+  sample: "/pumpkin/conf.json"
+'''
+
+EXAMPLES = r'''
+- name: Get Pumpkin installation path
+  get_install_path:
+  register: module_result
+'''
 
 import json
-import os
 import re
 import subprocess
 from functools import partial
 from pathlib import Path
 from typing import Callable
-
 from ansible.module_utils.basic import AnsibleModule
 
 UNKNOWN = "N/A"
 
 INSTALL_PATH_KEY = "install_path"
 CORTEX_PATH_KEY = "cortex_path"
-AXONIUS_CONF_PATH_KEY = "axonius_conf"
+PUMPKIN_CONF_PATH_KEY = "pumpkin_conf"
 
 CONFIG_FILE = "conf.json"
 CONFIG_DIR = "config"
 CORTEX_DIR = "cortex"
-DEFAULT_CONF_PATH = Path("/etc/axonius")
+DEFAULT_CONF_PATH = Path("/etc/pumpkin")
 
 Resolver = Callable[[], str|None]
-
 
 def os_path_resolver(path: Path) -> str|None:
     """Check if the specified path exists and return it as a string if it does.
@@ -31,8 +77,7 @@ def os_path_resolver(path: Path) -> str|None:
     Returns:
         str|None: The path as a string if it exists, otherwise None
     """
-    return str(path) if path.exists() else None
-
+    return path.as_posix() if path.exists() else None
 
 def docker_path_resolver() -> str|None:
     """Check for Docker-based configuration path by running 'docker info'
@@ -44,14 +89,14 @@ def docker_path_resolver() -> str|None:
         result = subprocess.run(
             ["docker", "info", "--format", "{{ .DockerRootDir }}"],
             capture_output=True,
+            check=True,
             text=True
         )
         docker_root = result.stdout.strip()
         conf_path = Path(docker_root).parent / CONFIG_DIR / CONFIG_FILE
-        return str(conf_path) if conf_path.exists() else None
+        return conf_path.as_posix() if conf_path.exists() else None
     except (subprocess.CalledProcessError, FileNotFoundError):
         return None
-
 
 def crontab_path_resolver() -> str|None:
     """Check for crontab-based configuration path
@@ -59,25 +104,24 @@ def crontab_path_resolver() -> str|None:
     Returns:
         str|None: The inferred configuration path if found and valid, otherwise None
     """
-
     try:
         result = subprocess.run(
             ["crontab", "-l"],
             capture_output=True,
+            check=True,
             text=True,
         )
         crontab_entries = result.stdout
         match = re.search(r"/.*?machine_boot\.sh", crontab_entries)
         if match:
-            machine_boot_path = match.group(0)
-            conf_path = machine_boot_path.replace(
-                "f/{CORTEX_DIR}/machine_boot.sh", f"/{CONFIG_DIR}/{CONFIG_FILE}"
+            machine_boot_path_str = match.group(0)
+            conf_path_str = machine_boot_path_str.replace(
+                f"/{CORTEX_DIR}/machine_boot.sh", f"/{CONFIG_DIR}/{CONFIG_FILE}"
             )
-            path = Path(conf_path)
-            return str(path) if path.exists() else None
+            conf_path = Path(conf_path_str)
+            return conf_path.as_posix() if conf_path.exists() else None
     except (subprocess.CalledProcessError, FileNotFoundError):
         return None
-
 
 def apply_resolvers(resolvers: list[Resolver]) -> str|None:
     """Apply a list of resolvers and return the first valid path found.
@@ -91,7 +135,6 @@ def apply_resolvers(resolvers: list[Resolver]) -> str|None:
         if result:
             return result
     return None
-
 
 def create_custom_paths_list(custom_paths_str: list[str]) -> list[Path]:
     """Convert a list of custom path strings into a list of Path objects,
@@ -110,9 +153,8 @@ def create_custom_paths_list(custom_paths_str: list[str]) -> list[Path]:
             custom_paths.append(path)
     return custom_paths
 
-
 def load_config(conf_path) -> dict:
-    """Load and parse Axonius configuration file
+    """Load and parse Pumpkin configuration file
     Args:
         conf_path (str): Path to the configuration file
     Returns:
@@ -127,13 +169,26 @@ def load_config(conf_path) -> dict:
     except (IOError, json.JSONDecodeError) as e:
         raise ValueError(f"Failed to load configuration from {conf_path}: {e}")
 
+def extract_install_path(config: dict) -> str:
+    """Extract the install path from the configuration data.
+    Args:
+        config (dict): Parsed configuration data
+    Returns:
+        str: The install path
+    Raises:
+        ValueError: If the install path is not found in the configuration data
+    """
+    try:
+        return config[INSTALL_PATH_KEY]
+    except KeyError:
+        raise ValueError(f"Install path not found in configuration data by key {INSTALL_PATH_KEY}")
 
 def run(module: AnsibleModule) -> None:
     """Main execution function for the Ansible module."""
     results = {
         INSTALL_PATH_KEY: UNKNOWN,
         CORTEX_PATH_KEY: UNKNOWN,
-        AXONIUS_CONF_PATH_KEY: UNKNOWN,
+        PUMPKIN_CONF_PATH_KEY: UNKNOWN,
     }
 
     try:
@@ -144,10 +199,10 @@ def run(module: AnsibleModule) -> None:
             module.fail_json(
                 **results,
                 msg="All custom paths must be absolute paths.",
-                relative_paths = [str(path) for path in custom_paths if not path.is_absolute()]
+                relative_paths = [path.as_posix() for path in custom_paths if not path.is_absolute()]
             )
         if DEFAULT_CONF_PATH not in custom_paths:
-            custom_paths.append(DEFAULT_CONF_PATH)
+            custom_paths.append(DEFAULT_CONF_PATH / CONFIG_FILE)
 
         resolvers: list[Resolver] = [
             *[partial(os_path_resolver, path) for path in custom_paths],
@@ -161,11 +216,11 @@ def run(module: AnsibleModule) -> None:
                 msg="No valid configuration path found.",
             )
 
-        results[AXONIUS_CONF_PATH_KEY] = conf_path
+        results[PUMPKIN_CONF_PATH_KEY] = conf_path
         try:
             config = load_config(conf_path)
-            results[INSTALL_PATH_KEY] = config["install_path"]
-            results[CORTEX_PATH_KEY] = os.path.join(results[CORTEX_PATH_KEY], CORTEX_DIR)
+            results[INSTALL_PATH_KEY] = extract_install_path(config)
+            results[CORTEX_PATH_KEY] = (Path(results[INSTALL_PATH_KEY]) / CORTEX_DIR).as_posix()
         except ValueError as e:
             module.fail_json(
                 **results,
@@ -183,8 +238,6 @@ def run(module: AnsibleModule) -> None:
             msg=f"Error processing input parameters: {str(e)}"
         )
 
-
-
 def main() -> None:
     """Define module arguments and run the main function."""
     module_args = dict(
@@ -192,7 +245,6 @@ def main() -> None:
     )
 
     run(AnsibleModule(argument_spec=module_args))
-
 
 if __name__ == "__main__":
     main()

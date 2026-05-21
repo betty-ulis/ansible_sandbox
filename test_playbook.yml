@@ -1,8 +1,25 @@
 ---
 - name: Test Playbook
-  hosts: localhost
+  hosts: local
   gather_facts: false
 
-  roles:
-    - do_checks
+#  roles:
+#    - do_checks
 
+  tasks:
+    - name: block with rescue
+      block:
+        - name: fail
+          ansible.builtin.fail:
+            msg: "This task is in a block"
+      rescue:
+        - name: fail
+          ansible.builtin.fail:
+            msg: "This failed task is in a rescue block"
+        - name: task in rescue
+          ansible.builtin.debug:
+            msg: "This task is in a rescue block"
+
+    - name: task after block
+      ansible.builtin.debug:
+        msg: "This task is after the block"
