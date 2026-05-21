@@ -1,0 +1,21 @@
+name: Version Check On Push Behavior
+description: Check behavior on push
+inputs:
+  base_ref:
+    description: The base ref to compare against
+    required: true
+outputs:
+  version_promotion:
+    description: The version promotion result
+    value: ${{ steps.version_check.outputs.version_promotion }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run version check
+      id: version_check
+      shell: bash
+      env:
+        SAMPLE_FILE: 'check_push/sample.txt'
+        BASE_REF: ${{ inputs.base_ref }}
+      run: python3 "$GITHUB_ACTION_PATH/killme_check_push_compare.py"
